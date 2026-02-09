@@ -6,6 +6,9 @@ function History({ onSelectDataset }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
+
+
 
   useEffect(() => {
     fetchHistory();
@@ -13,46 +16,51 @@ function History({ onSelectDataset }) {
 
   const fetchHistory = async () => {
     setLoading(true);
+    setError('');
     try {
       const data = await datasetService.getHistory();
       setHistory(data);
     } catch (err) {
-      setError('Failed to load history');
+      console.error('Error fetching history:', err);
+      setError('Failed to load history. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelect = async (datasetId) => {
-    try {
-      const data = await datasetService.getDataset(datasetId);
-      onSelectDataset(data);
-      window.dispatchEvent(new CustomEvent('changeView', { detail: 'dashboard' }));
-    } catch (err) {
-      setError('Failed to load dataset');
-    }
-  };
+const handleSelect = (datasetId) => {
+  setError('');
+  setExpandedId(prev => (prev === datasetId ? null : datasetId));
+};
+
+
 
   const handleDelete = async (datasetId) => {
     if (window.confirm('Are you sure you want to delete this dataset?')) {
       try {
         await datasetService.deleteDataset(datasetId);
         fetchHistory();
+        setError('');
       } catch (err) {
-        setError('Failed to delete dataset');
+        console.error('Error deleting dataset:', err);
+        setError('Failed to delete dataset. Please try again.');
       }
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (e) {
+      return dateString;
+    }
   };
 
   if (loading) {
@@ -64,8 +72,26 @@ function History({ onSelectDataset }) {
     );
   }
 
-  if (error) {
-    return <div className="error-message">{error}</div>;
+  if (error && history.length === 0) {
+    return (
+      <div className="history-container">
+        <div className="history-header">
+          <div>
+            <h1>Upload History</h1>
+            <p className="subtitle">Last 5 uploaded datasets</p>
+          </div>
+          <button onClick={fetchHistory} className="refresh-button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M13.65 2.35A7.95 7.95 0 0 0 8 0C3.58 0 0 3.58 0 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 8 14c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" fill="currentColor"/>
+            </svg>
+            Retry
+          </button>
+        </div>
+        <div className="history-error">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (history.length === 0) {
@@ -95,6 +121,16 @@ function History({ onSelectDataset }) {
           Refresh
         </button>
       </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M8 4V8M8 10V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          {error}
+        </div>
+      )}
 
       <div className="history-grid">
         {history.map((dataset, index) => (
@@ -165,7 +201,7 @@ function History({ onSelectDataset }) {
             <div className="equipment-types">
               <span className="types-label">Equipment Types:</span>
               <div className="type-badges">
-                {Object.entries(dataset.equipment_type_distribution).map(([type, count]) => (
+                {Object.entries(dataset.equipment_type_distribution || {}).map(([type, count]) => (
                   <span key={type} className="type-badge">
                     {type}: {count}
                   </span>
@@ -187,9 +223,24 @@ function History({ onSelectDataset }) {
                 </svg>
               </button>
             </div>
+            {expandedId === dataset.id && (
+              <div className="history-details" style={{ marginTop: '1rem' }}>
+                <h4>Dataset Details</h4>
+
+                <p><strong>File:</strong> {dataset.filename}</p>
+                <p><strong>Uploaded:</strong> {formatDate(dataset.upload_date)}</p>
+
+                <div className="stats-grid">
+                  <div>Flowrate: {dataset.avg_flowrate.toFixed(1)} L/min</div>
+                  <div>Pressure: {dataset.avg_pressure.toFixed(1)} bar</div>
+                  <div>Temperature: {dataset.avg_temperature.toFixed(1)} °C</div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
+      
     </div>
   );
 }

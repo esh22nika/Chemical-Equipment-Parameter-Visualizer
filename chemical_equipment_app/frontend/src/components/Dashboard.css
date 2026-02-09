@@ -7,16 +7,16 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-2xl);
-  padding-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--border-light);
 }
 
 .dashboard h1 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
   letter-spacing: -0.02em;
 }
 
@@ -34,7 +34,7 @@
 
 .dashboard-actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .dashboard-empty-state {
@@ -77,24 +77,30 @@
   line-height: 1.6;
 }
 
+/* Summary Cards - Compact and Better Proportioned */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
+/* Charts - Better Spacing and Size */
 .charts-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: var(--spacing-xl);
 }
 
 .chart-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 2fr 1fr;
   gap: var(--spacing-lg);
+}
+
+.chart-row:last-child {
+  grid-template-columns: 1fr 1fr;
 }
 
 .chart-card {
@@ -105,17 +111,13 @@
   transition: all var(--transition-base);
 }
 
-.chart-card.span-2 {
-  grid-column: span 2;
-}
-
 .chart-card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--border);
 }
 
 .chart-header {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-light);
   display: flex;
   justify-content: space-between;
@@ -124,14 +126,14 @@
 }
 
 .chart-header h3 {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .chart-description {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--text-tertiary);
   font-weight: 500;
 }
@@ -145,8 +147,8 @@
 .legend-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 0.75rem;
+  gap: 6px;
+  font-size: 0.6875rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -161,8 +163,10 @@
 .chart-body {
   padding: var(--spacing-lg);
   position: relative;
+  height: 320px;
 }
 
+/* Statistics Table */
 .stats-table-container {
   background: var(--surface);
   border-radius: var(--radius-lg);
@@ -171,16 +175,16 @@
 }
 
 .stats-table-header {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: linear-gradient(to bottom, var(--surface) 0%, var(--surface-secondary) 100%);
   border-bottom: 1px solid var(--border-light);
 }
 
 .stats-table-header h3 {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .stats-table {
@@ -197,9 +201,9 @@
 }
 
 .stats-table th {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -208,7 +212,7 @@
 }
 
 .stats-table td {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
   font-size: 0.875rem;
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-light);
@@ -240,18 +244,13 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .chart-row {
     grid-template-columns: 1fr;
   }
 
-  .chart-card.span-2 {
-    grid-column: span 1;
-  }
-
-  .chart-legend-inline {
-    flex-direction: column;
-    align-items: flex-start;
+  .chart-body {
+    height: 280px;
   }
 }
 
@@ -274,12 +273,26 @@
     grid-template-columns: 1fr;
   }
 
+  .chart-body {
+    height: 250px;
+    padding: var(--spacing-md);
+  }
+
   .stats-table {
     font-size: 0.75rem;
   }
 
   .stats-table th,
   .stats-table td {
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
+}
+
+/* Chart.js Custom Styling via CSS Variables */
+:root {
+  --chart-color-primary: #58508d;
+  --chart-color-secondary: #bc5090;
+  --chart-color-accent: #ff6361;
+  --chart-color-warning: #ffa600;
+  --chart-color-dark: #003f5c;
 }

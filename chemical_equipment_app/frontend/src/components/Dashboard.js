@@ -180,9 +180,9 @@ function Dashboard({ dataset }) {
         position: 'bottom',
         labels: {
           usePointStyle: true,
-          padding: 16,
+          padding: 12,
           font: {
-            size: 13,
+            size: 11,
             family: 'Instrument Sans',
           },
         },
@@ -191,11 +191,11 @@ function Dashboard({ dataset }) {
         backgroundColor: 'rgba(15, 20, 25, 0.95)',
         padding: 12,
         titleFont: {
-          size: 14,
+          size: 13,
           family: 'Instrument Sans',
         },
         bodyFont: {
-          size: 13,
+          size: 12,
           family: 'IBM Plex Mono',
         },
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -216,20 +216,20 @@ function Dashboard({ dataset }) {
           </p>
         </div>
         <div className="dashboard-actions">
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary btn-sm">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M14 6L8 2L2 6V13C2 13.5304 2.21071 14.0391 2.58579 14.4142C2.96086 14.7893 3.46957 15 4 15H12C12.5304 15 13.0391 14.7893 13.4142 14.4142C13.7893 14.0391 14 13.5304 14 13V6Z" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M6 15V8H10V15" stroke="currentColor" strokeWidth="1.5"/>
             </svg>
             Export Data
           </button>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary btn-sm">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M4.66667 6.66667L8 10L11.3333 6.66667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M8 10V2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            Generate Report
+            Report
           </button>
         </div>
       </div>
@@ -272,7 +272,7 @@ function Dashboard({ dataset }) {
       {chartData && (
         <div className="charts-container">
           <div className="chart-row">
-            <div className="chart-card span-2">
+            <div className="chart-card">
               <div className="chart-header">
                 <div>
                   <h3>Parameter Trends</h3>
@@ -293,7 +293,7 @@ function Dashboard({ dataset }) {
                   </span>
                 </div>
               </div>
-              <div className="chart-body" style={{ height: '320px' }}>
+              <div className="chart-body">
                 <Line data={chartData.lineData} options={chartOptions} />
               </div>
             </div>
@@ -305,7 +305,7 @@ function Dashboard({ dataset }) {
                   <p className="chart-description">By type classification</p>
                 </div>
               </div>
-              <div className="chart-body" style={{ height: '320px' }}>
+              <div className="chart-body">
                 <Pie data={chartData.pieData} options={chartOptions} />
               </div>
             </div>
@@ -319,7 +319,7 @@ function Dashboard({ dataset }) {
                   <p className="chart-description">Comparative analysis</p>
                 </div>
               </div>
-              <div className="chart-body" style={{ height: '280px' }}>
+              <div className="chart-body">
                 <Bar
                   data={chartData.barData}
                   options={{
@@ -340,7 +340,7 @@ function Dashboard({ dataset }) {
                   <p className="chart-description">Statistical distribution</p>
                 </div>
               </div>
-              <div className="chart-body" style={{ height: '280px' }}>
+              <div className="chart-body">
                 <Radar data={chartData.radarData} options={chartOptions} />
               </div>
             </div>

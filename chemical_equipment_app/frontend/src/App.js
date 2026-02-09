@@ -21,6 +21,19 @@ function App() {
     if (token) {
       setIsAuthenticated(true);
     }
+
+    // Listen for custom view change events
+    const handleViewChange = (event) => {
+      if (event.detail) {
+        setCurrentView(event.detail);
+      }
+    };
+
+    window.addEventListener('changeView', handleViewChange);
+    
+    return () => {
+      window.removeEventListener('changeView', handleViewChange);
+    };
   }, []);
 
   const handleLogin = (token, user) => {
@@ -34,9 +47,15 @@ function App() {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setCurrentView('dashboard');
+    setCurrentDataset(null);
   };
 
   const handleDatasetUpload = (dataset) => {
+    setCurrentDataset(dataset);
+    setCurrentView('dashboard');
+  };
+
+  const handleDatasetSelect = (dataset) => {
     setCurrentDataset(dataset);
     setCurrentView('dashboard');
   };
@@ -61,7 +80,7 @@ function App() {
             <DataTable dataset={currentDataset} />
           )}
           {currentView === 'history' && (
-            <History onSelectDataset={setCurrentDataset} />
+            <History onSelectDataset={handleDatasetSelect} />
           )}
           {currentView === 'report' && (
             <ReportPreview dataset={currentDataset} />

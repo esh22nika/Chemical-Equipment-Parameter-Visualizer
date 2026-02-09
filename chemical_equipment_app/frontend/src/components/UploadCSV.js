@@ -112,6 +112,9 @@ function UploadCSV({ onUploadSuccess }) {
               </svg>
               Choose File
             </label>
+            <p className="helper-text">
+              CSV with columns: Equipment Name, Type, Flowrate, Pressure, Temperature
+            </p>
           </>
         ) : (
           <div className="file-preview">
@@ -180,56 +183,6 @@ function UploadCSV({ onUploadSuccess }) {
           </>
         )}
       </button>
-
-      <div className="upload-instructions-card">
-        <div className="instructions-header">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-            <path d="M10 6V10M10 12V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
-          <h3>CSV Format Requirements</h3>
-        </div>
-        <div className="instructions-body">
-          <p className="instructions-intro">Your CSV file must include the following columns:</p>
-          <ul className="requirements-list">
-            <li>
-              <div className="requirement-icon">1</div>
-              <div className="requirement-content">
-                <strong>Equipment Name</strong>
-                <span>Unique identifier for each equipment unit</span>
-              </div>
-            </li>
-            <li>
-              <div className="requirement-icon">2</div>
-              <div className="requirement-content">
-                <strong>Type</strong>
-                <span>Classification (Pump, Valve, Reactor, etc.)</span>
-              </div>
-            </li>
-            <li>
-              <div className="requirement-icon">3</div>
-              <div className="requirement-content">
-                <strong>Flowrate</strong>
-                <span>Numeric value in L/min</span>
-              </div>
-            </li>
-            <li>
-              <div className="requirement-icon">4</div>
-              <div className="requirement-content">
-                <strong>Pressure</strong>
-                <span>Numeric value in bar</span>
-              </div>
-            </li>
-            <li>
-              <div className="requirement-icon">5</div>
-              <div className="requirement-content">
-                <strong>Temperature</strong>
-                <span>Numeric value in °C</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
     </div>
   );
 }
