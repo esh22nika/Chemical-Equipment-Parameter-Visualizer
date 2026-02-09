@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginScreen from './components/LoginScreen';
+import LoginScreen from './components/Loginscreen';
 import Dashboard from './components/Dashboard';
 import UploadCSV from './components/UploadCSV';
-import DataTable from './components/DataTable';
+import DataTable from './components/Datatable';
 import History from './components/History';
 import ReportPreview from './components/ReportPreview';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import './App.css';
+import './components/App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
