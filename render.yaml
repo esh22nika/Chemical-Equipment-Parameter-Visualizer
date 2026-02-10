@@ -2,6 +2,7 @@ services:
   - type: web
     name: chemflow-backend
     env: python
+    pythonVersion: 3.11.9
     rootDir: chemical_equipment_app/backend
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: python manage.py migrate && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
