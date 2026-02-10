@@ -62,6 +62,21 @@
   opacity: 0.9;
 }
 
+.login-hero-graphic {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.login-hero-graphic svg {
+  width: min(520px, 90%);
+  max-width: none;
+  height: auto;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.15));
+}
+
 .login-features {
   display: flex;
   flex-direction: column;

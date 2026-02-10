@@ -22,6 +22,7 @@ COLORS = {
     'surface': '#FFFFFF',
     'surface_secondary': '#F8FAFB',
     'surface_tertiary': '#EFF3F6',
+    'background': '#F8FAFB',
     
     'text_primary': '#0F1419',
     'text_secondary': '#536471',
@@ -32,6 +33,8 @@ COLORS = {
     
     'danger': '#DC2626',
     'warning': '#F59E0B',
+    'info': '#0EA5E9',
+    'info_light': '#E0F2FE',
     'success': '#059669',
 }
 

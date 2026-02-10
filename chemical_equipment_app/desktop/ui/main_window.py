@@ -10,6 +10,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, WINDOW_WIDTH, WINDOW_HEIGHT, APP_VERSION
 from ui.styles import get_button_style
+from ui.icons import get_icon
 from ui.views.dashboard_view import DashboardView
 from ui.views.upload_view import UploadView
 from ui.views.data_view import DataView
@@ -61,8 +62,9 @@ class MainWindow(QMainWindow):
                 border-bottom: none;
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: 500;
+                min-width: 130px;
             }}
             QTabBar::tab:selected {{
                 background-color: {COLORS['surface_secondary']};
@@ -82,15 +84,15 @@ class MainWindow(QMainWindow):
         self.report_view = ReportView()
         
         # Connect signals
-        self.upload_view.upload_success.connect(self.on_dataset_uploaded)
+        self.upload_view.upload_complete.connect(self.on_dataset_uploaded)
         self.history_view.dataset_selected.connect(self.on_dataset_selected)
         
         # Add tabs
-        self.tabs.addTab(self.dashboard_view, '📊 Dashboard')
-        self.tabs.addTab(self.upload_view, '📤 Upload Data')
-        self.tabs.addTab(self.data_view, '📋 Data Table')
-        self.tabs.addTab(self.history_view, '🕒 History')
-        self.tabs.addTab(self.report_view, '📄 Reports')
+        self.tabs.addTab(self.dashboard_view, get_icon('dashboard'), 'Dashboard')
+        self.tabs.addTab(self.upload_view, get_icon('upload'), 'Upload Data')
+        self.tabs.addTab(self.data_view, get_icon('data_table'), 'Data Table')
+        self.tabs.addTab(self.history_view, get_icon('history'), 'History')
+        self.tabs.addTab(self.report_view, get_icon('report'), 'Report')
         
         main_layout.addWidget(self.tabs)
         
@@ -140,7 +142,7 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(version_label)
         
         # User info
-        user_label = QLabel(f"👤 {self.user['username']}")
+        user_label = QLabel(f"User: {self.user['username']}")
         user_label.setStyleSheet(f"""
             color: {COLORS['text_secondary']};
             font-size: 14px;
@@ -166,7 +168,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             'Logout',
-            'Are you sure you want to logout?',
+            'Are you sure you want to logout',
             QMessageBox.Yes | QMessageBox.No
         )
         if reply == QMessageBox.Yes:

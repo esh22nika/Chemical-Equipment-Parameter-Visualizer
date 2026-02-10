@@ -95,12 +95,8 @@
 
 .chart-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-lg);
-}
-
-.chart-row:last-child {
   grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
 }
 
 .chart-card {
@@ -163,7 +159,11 @@
 .chart-body {
   padding: var(--spacing-lg);
   position: relative;
-  height: 320px;
+  height: 300px;
+}
+
+.chart-body--tall {
+  height: 360px;
 }
 
 /* Statistics Table */
@@ -250,7 +250,11 @@
   }
 
   .chart-body {
-    height: 280px;
+    height: 260px;
+  }
+
+  .chart-body--tall {
+    height: 300px;
   }
 }
 

@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, SPACING
 from ui.styles import get_button_style, get_card_style
+from ui.icons import get_icon
 from services.api_service import api_service
 
 
@@ -59,8 +60,9 @@ class ReportView(QWidget):
         header_layout.addStretch()
         
         # Download button
-        self.download_btn = QPushButton('📄 Download PDF Report')
+        self.download_btn = QPushButton('Download PDF Report')
         self.download_btn.setStyleSheet(get_button_style('success'))
+        self.download_btn.setIcon(get_icon('download'))
         self.download_btn.setEnabled(False)
         self.download_btn.setMinimumHeight(45)
         self.download_btn.clicked.connect(self.download_pdf)
@@ -97,7 +99,8 @@ class ReportView(QWidget):
         layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(SPACING['lg'])
         
-        icon = QLabel('📄')
+        icon = QLabel()
+        icon.setPixmap(get_icon('report', 64).pixmap(64, 64))
         icon.setFont(QFont('Arial', 64))
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
@@ -242,7 +245,7 @@ class ReportView(QWidget):
             </tr>
             <tr>
                 <td style="padding: 10px; border: 1px solid {COLORS['border_light']};">Average Temperature</td>
-                <td style="padding: 10px; border: 1px solid {COLORS['border_light']};">{self.dataset['avg_temperature']:.2f} °C</td>
+                <td style="padding: 10px; border: 1px solid {COLORS['border_light']};">{self.dataset['avg_temperature']:.2f} C</td>
             </tr>
         </table>
         """
@@ -317,7 +320,7 @@ class ReportView(QWidget):
             if file_path:
                 # Show progress
                 self.download_btn.setEnabled(False)
-                self.download_btn.setText('⏳ Downloading...')
+                self.download_btn.setText('Downloading...')
                 
                 # Download PDF
                 pdf_content = api_service.download_pdf(self.dataset['id'])
@@ -328,7 +331,7 @@ class ReportView(QWidget):
                 
                 # Reset button
                 self.download_btn.setEnabled(True)
-                self.download_btn.setText('📄 Download PDF Report')
+                self.download_btn.setText('Download PDF Report')
                 
                 # Show success
                 QMessageBox.information(
@@ -339,7 +342,7 @@ class ReportView(QWidget):
                 
         except Exception as e:
             self.download_btn.setEnabled(True)
-            self.download_btn.setText('📄 Download PDF Report')
+            self.download_btn.setText('Download PDF Report')
             QMessageBox.warning(
                 self,
                 'Error',

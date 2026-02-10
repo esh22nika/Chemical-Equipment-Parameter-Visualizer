@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, SPACING
 from ui.styles import get_button_style
+from ui.icons import get_icon
 from services.api_service import api_service
 
 
@@ -47,8 +48,9 @@ class DataView(QWidget):
         header_layout.addStretch()
         
         # Download PDF button
-        self.pdf_btn = QPushButton('📄 Download PDF Report')
+        self.pdf_btn = QPushButton('Download PDF Report')
         self.pdf_btn.setStyleSheet(get_button_style('primary'))
+        self.pdf_btn.setIcon(get_icon('download'))
         self.pdf_btn.setEnabled(False)
         self.pdf_btn.clicked.connect(self.download_pdf)
         self.pdf_btn.setCursor(Qt.PointingHandCursor)

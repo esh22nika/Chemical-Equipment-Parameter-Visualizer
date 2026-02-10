@@ -1,26 +1,54 @@
 """
-Upload View
+Upload View - Fixed Version
 """
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QFileDialog, QFrame, QMessageBox
+    QPushButton, QFileDialog, QMessageBox, QProgressBar
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, SPACING
 from ui.styles import get_button_style
+from ui.icons import get_icon
 from services.api_service import api_service
 
 
-class UploadView(QWidget):
-    """Upload CSV view"""
+class UploadWorker(QThread):
+    """Worker thread for file upload"""
     
-    upload_success = pyqtSignal(dict)
+    progress = pyqtSignal(int)
+    finished = pyqtSignal(dict)
+    error = pyqtSignal(str)
+    
+    def __init__(self, file_path):
+        super().__init__()
+        self.file_path = file_path
+    
+    def run(self):
+        """Upload file in background"""
+        try:
+            # Simulate progress
+            self.progress.emit(20)
+            
+            # Upload file
+            result = api_service.upload_dataset(self.file_path)
+            
+            self.progress.emit(100)
+            self.finished.emit(result)
+            
+        except Exception as e:
+            self.error.emit(str(e))
+
+
+class UploadView(QWidget):
+    """Upload data view"""
+    
+    upload_complete = pyqtSignal(dict)
     
     def __init__(self):
         super().__init__()
-        self.selected_file = None
+        self.upload_worker = None
         self.init_ui()
     
     def init_ui(self):
@@ -30,179 +58,220 @@ class UploadView(QWidget):
         layout.setSpacing(SPACING['xl'])
         
         # Header
-        header_layout = QVBoxLayout()
-        header_layout.setSpacing(SPACING['xs'])
+        header = QVBoxLayout()
+        header.setSpacing(SPACING['sm'])
         
         title = QLabel('Upload Equipment Data')
         title.setFont(QFont('Arial', 24, QFont.Bold))
         title.setStyleSheet(f"color: {COLORS['text_primary']};")
-        header_layout.addWidget(title)
+        header.addWidget(title)
         
         subtitle = QLabel('Import CSV files containing chemical equipment parameters')
         subtitle.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 14px;")
-        header_layout.addWidget(subtitle)
+        header.addWidget(subtitle)
         
-        layout.addLayout(header_layout)
+        layout.addLayout(header)
+        layout.addSpacing(20)
         
-        # Upload card
-        card = QFrame()
-        card.setStyleSheet(f"""
-            QFrame {{
-                background-color: {COLORS['surface']};
-                border: 1px solid {COLORS['border_light']};
-                border-radius: 12px;
-                padding: 30px;
+        # Upload area
+        upload_area = QWidget()
+        upload_area.setStyleSheet(f"""
+            QWidget {{
+                background-color: {COLORS['background']};
+                border: 2px dashed {COLORS['border']};
+                border-radius: 16px;
+                padding: 60px;
             }}
         """)
-        card.setMaximumWidth(800)
         
-        card_layout = QVBoxLayout()
-        card_layout.setSpacing(SPACING['lg'])
+        upload_layout = QVBoxLayout()
+        upload_layout.setAlignment(Qt.AlignCenter)
+        upload_layout.setSpacing(SPACING['lg'])
         
-        # Instructions
-        instructions = QLabel(
-            '📋 Upload a CSV file with columns:\n'
-            'Equipment Name, Type, Flowrate, Pressure, Temperature'
-        )
-        instructions.setStyleSheet(f"""
-            padding: 20px;
-            background-color: {COLORS['surface_secondary']};
-            border-radius: 8px;
-            color: {COLORS['text_secondary']};
-            font-size: 13px;
-        """)
-        instructions.setAlignment(Qt.AlignCenter)
-        card_layout.addWidget(instructions)
-        
-        # File selection
-        file_layout = QHBoxLayout()
-        file_layout.setSpacing(SPACING['md'])
-        
-        self.file_label = QLabel('No file selected')
-        self.file_label.setStyleSheet(f"""
-            color: {COLORS['text_secondary']};
-            font-size: 14px;
-            padding: 12px;
-            background-color: {COLORS['surface_secondary']};
-            border-radius: 6px;
-        """)
-        file_layout.addWidget(self.file_label, 1)
-        
-        browse_btn = QPushButton('Browse')
-        browse_btn.setStyleSheet(get_button_style('secondary'))
-        browse_btn.setFixedWidth(120)
-        browse_btn.clicked.connect(self.browse_file)
-        browse_btn.setCursor(Qt.PointingHandCursor)
-        file_layout.addWidget(browse_btn)
-        
-        card_layout.addLayout(file_layout)
+        # Icon
+        icon = QLabel()
+        icon.setPixmap(get_icon('upload', 64).pixmap(64, 64))
+        icon.setAlignment(Qt.AlignCenter)
+        upload_layout.addWidget(icon)
         
         # Upload button
-        self.upload_btn = QPushButton('📤 Upload and Analyze')
+        self.upload_btn = QPushButton('Upload and Analyze')
         self.upload_btn.setStyleSheet(get_button_style('success'))
-        self.upload_btn.setEnabled(False)
-        self.upload_btn.setMinimumHeight(50)
-        self.upload_btn.clicked.connect(self.upload_file)
+        self.upload_btn.setIcon(get_icon('upload'))
+        self.upload_btn.setMinimumHeight(60)
+        self.upload_btn.setFont(QFont('Arial', 14, QFont.Bold))
+        self.upload_btn.clicked.connect(self.select_file)
         self.upload_btn.setCursor(Qt.PointingHandCursor)
-        card_layout.addWidget(self.upload_btn)
+        upload_layout.addWidget(self.upload_btn)
         
-        # Status message
+        # Progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 2px solid {COLORS['border']};
+                border-radius: 8px;
+                text-align: center;
+                height: 30px;
+                background-color: white;
+            }}
+            QProgressBar::chunk {{
+                background-color: {COLORS['success']};
+                border-radius: 6px;
+            }}
+        """)
+        self.progress_bar.setVisible(False)
+        upload_layout.addWidget(self.progress_bar)
+        
+        # Status label
         self.status_label = QLabel('')
         self.status_label.setAlignment(Qt.AlignCenter)
-        self.status_label.setWordWrap(True)
-        self.status_label.setStyleSheet("font-size: 13px; padding: 10px;")
-        card_layout.addWidget(self.status_label)
+        self.status_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 14px;")
+        upload_layout.addWidget(self.status_label)
         
-        card.setLayout(card_layout)
-        layout.addWidget(card, alignment=Qt.AlignTop)
+        upload_area.setLayout(upload_layout)
+        layout.addWidget(upload_area)
         
-        # Requirements info
-        info_card = QFrame()
-        info_card.setStyleSheet(f"""
-            QFrame {{
-                background-color: {COLORS['primary_light']};
-                border-left: 4px solid {COLORS['primary']};
+        # File requirements
+        requirements = QWidget()
+        requirements.setStyleSheet(f"""
+            QWidget {{
+                background-color: {COLORS['info_light']};
+                border-left: 4px solid {COLORS['info']};
                 border-radius: 8px;
                 padding: 20px;
             }}
         """)
-        info_card.setMaximumWidth(800)
         
-        info_layout = QVBoxLayout()
+        req_layout = QVBoxLayout()
+        req_layout.setSpacing(SPACING['md'])
         
-        info_title = QLabel('ℹ️ File Requirements')
-        info_title.setFont(QFont('Arial', 13, QFont.Bold))
-        info_title.setStyleSheet(f"color: {COLORS['primary']};")
-        info_layout.addWidget(info_title)
+        req_title = QLabel('File Requirements')
+        req_title.setFont(QFont('Arial', 14, QFont.Bold))
+        req_title.setStyleSheet(f"color: {COLORS['info']};")
+        req_layout.addWidget(req_title)
         
-        requirements = QLabel(
-            '• CSV format only\n'
-            '• Required columns: Equipment Name, Type, Flowrate, Pressure, Temperature\n'
-            '• Numeric values for Flowrate, Pressure, and Temperature\n'
-            '• Maximum file size: 10MB'
-        )
-        requirements.setStyleSheet(f"color: {COLORS['text_primary']}; font-size: 13px; line-height: 1.6;")
-        info_layout.addWidget(requirements)
+        requirements_text = [
+            '- CSV format only',
+            '- Required columns: equipment_id, equipment_type, timestamp',
+            '- Recommended columns: flowrate, pressure, temperature, efficiency',
+            '- Maximum file size: 50 MB',
+            '- Date format: YYYY-MM-DD HH:MM:SS'
+        ]
         
-        info_card.setLayout(info_layout)
-        layout.addWidget(info_card, alignment=Qt.AlignTop)
+        for req in requirements_text:
+            req_label = QLabel(req)
+            req_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 13px;")
+            req_layout.addWidget(req_label)
+        
+        requirements.setLayout(req_layout)
+        layout.addWidget(requirements)
         
         layout.addStretch()
-        
         self.setLayout(layout)
     
-    def browse_file(self):
-        """Browse for CSV file"""
+    def select_file(self):
+        """Open file dialog"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             'Select CSV File',
             '',
-            'CSV Files (*.csv);;All Files (*.*)'
+            'CSV Files (*.csv);;All Files (*)'
         )
         
         if file_path:
-            self.selected_file = file_path
-            import os
-            filename = os.path.basename(file_path)
-            self.file_label.setText(f'📄 {filename}')
-            self.upload_btn.setEnabled(True)
-            self.status_label.setText('')
+            self.upload_file(file_path)
     
-    def upload_file(self):
-        """Upload CSV file"""
-        if not self.selected_file:
-            return
-        
+    def upload_file(self, file_path):
+        """Upload selected file"""
         try:
+            # Reset UI
+            self.progress_bar.setValue(0)
+            self.progress_bar.setVisible(True)
             self.upload_btn.setEnabled(False)
-            self.upload_btn.setText('⏳ Processing...')
-            self.status_label.setText('')
+            self.status_label.setText('Uploading file...')
+            self.status_label.setStyleSheet(f"color: {COLORS['info']}; font-size: 14px;")
             
-            # Upload file
-            data = api_service.upload_csv(self.selected_file)
+            # Create worker
+            self.upload_worker = UploadWorker(file_path)
+            self.upload_worker.progress.connect(self.update_progress)
+            self.upload_worker.finished.connect(self.upload_success)
+            self.upload_worker.error.connect(self.upload_error)
             
-            # Success
-            self.status_label.setStyleSheet(f"color: {COLORS['success']}; font-size: 14px;")
-            self.status_label.setText('✅ File uploaded successfully!')
-            
-            # Emit signal
-            self.upload_success.emit(data)
-            
-            # Reset
-            self.selected_file = None
-            self.file_label.setText('No file selected')
-            self.upload_btn.setText('📤 Upload and Analyze')
+            # Start upload
+            self.upload_worker.start()
             
         except Exception as e:
-            error_msg = str(e)
-            self.status_label.setStyleSheet(f"color: {COLORS['danger']}; font-size: 14px;")
-            
-            if 'Missing required columns' in error_msg:
-                self.status_label.setText('❌ Invalid file format. Check required columns.')
-            elif 'File must be CSV' in error_msg:
-                self.status_label.setText('❌ Please upload a CSV file.')
-            else:
-                self.status_label.setText(f'❌ Upload failed: {error_msg}')
-            
-            self.upload_btn.setEnabled(True)
-            self.upload_btn.setText('📤 Upload and Analyze')
+            self.upload_error(str(e))
+    
+    def update_progress(self, value):
+        """Update progress bar"""
+        self.progress_bar.setValue(value)
+    
+    def upload_success(self, result):
+        """Handle successful upload"""
+        self.progress_bar.setVisible(False)
+        self.upload_btn.setEnabled(True)
+        
+        filename = result.get('filename', 'Unknown')
+        total_count = result.get('total_count', 0)
+        
+        self.status_label.setText(f'Upload successful: {filename} ({total_count} records)')
+        self.status_label.setStyleSheet(f"color: {COLORS['success']}; font-size: 14px; font-weight: 600;")
+        
+        # Show success dialog
+        QMessageBox.information(
+            self,
+            'Upload Successful',
+            f'File uploaded successfully!\n\n'
+            f'Filename: {filename}\n'
+            f'Total records: {total_count}\n\n'
+            f'You can now view the data in the Dashboard.'
+        )
+        
+        # Emit signal
+        self.upload_complete.emit(result)
+    
+    def upload_error(self, error_msg):
+        """Handle upload error"""
+        self.progress_bar.setVisible(False)
+        self.upload_btn.setEnabled(True)
+        
+        self.status_label.setText('Upload failed')
+        self.status_label.setStyleSheet(f"color: {COLORS['danger']}; font-size: 14px; font-weight: 600;")
+        
+        # Show detailed error
+        if 'Connection' in error_msg:
+            QMessageBox.warning(
+                self,
+                'Connection Error',
+                'Cannot connect to the server.\n\n'
+                'Please make sure:\n'
+                '1. Django backend is running (python manage.py runserver)\n'
+                '2. Server is accessible at http://localhost:8000\n\n'
+                f'Error: {error_msg}'
+            )
+        elif '400' in error_msg or 'Bad Request' in error_msg:
+            QMessageBox.warning(
+                self,
+                'Invalid File',
+                'The uploaded file is invalid.\n\n'
+                'Please check:\n'
+                '1. File is in CSV format\n'
+                '2. Required columns are present\n'
+                '3. Data format is correct\n\n'
+                f'Error: {error_msg}'
+            )
+        elif '413' in error_msg:
+            QMessageBox.warning(
+                self,
+                'File Too Large',
+                'The file is too large.\n\n'
+                'Maximum file size: 50 MB\n\n'
+                f'Error: {error_msg}'
+            )
+        else:
+            QMessageBox.warning(
+                self,
+                'Upload Error',
+                f'Failed to upload file:\n\n{error_msg[:300]}'
+            )

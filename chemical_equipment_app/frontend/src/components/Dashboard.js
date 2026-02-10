@@ -204,6 +204,44 @@ function Dashboard({ dataset }) {
     },
   };
 
+  const barOptions = {
+    ...chartOptions,
+    indexAxis: 'y',
+    plugins: {
+      ...chartOptions.plugins,
+      legend: { display: false },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(15, 20, 25, 0.08)' },
+        ticks: { font: { size: 11, family: 'IBM Plex Mono' } },
+      },
+      y: {
+        grid: { display: false },
+        ticks: { font: { size: 11, family: 'Instrument Sans' } },
+      },
+    },
+  };
+
+  const radarOptions = {
+    ...chartOptions,
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 20,
+          backdropColor: 'transparent',
+          color: 'rgba(83, 100, 113, 0.8)',
+          font: { size: 10, family: 'IBM Plex Mono' },
+        },
+        grid: { color: 'rgba(15, 20, 25, 0.08)' },
+        angleLines: { color: 'rgba(15, 20, 25, 0.08)' },
+        pointLabels: { font: { size: 11, family: 'Instrument Sans' } },
+      },
+    },
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -301,12 +339,12 @@ function Dashboard({ dataset }) {
             <div className="chart-card">
               <div className="chart-header">
                 <div>
-                  <h3>Equipment Distribution</h3>
-                  <p className="chart-description">By type classification</p>
+                  <h3>Average Parameters</h3>
+                  <p className="chart-description">Comparative analysis</p>
                 </div>
               </div>
               <div className="chart-body">
-                <Pie data={chartData.pieData} options={chartOptions} />
+                <Bar data={chartData.barData} options={barOptions} />
               </div>
             </div>
           </div>
@@ -315,21 +353,12 @@ function Dashboard({ dataset }) {
             <div className="chart-card">
               <div className="chart-header">
                 <div>
-                  <h3>Average Parameters</h3>
-                  <p className="chart-description">Comparative analysis</p>
+                  <h3>Equipment Distribution</h3>
+                  <p className="chart-description">By type classification</p>
                 </div>
               </div>
-              <div className="chart-body">
-                <Bar
-                  data={chartData.barData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      legend: { display: false },
-                    },
-                  }}
-                />
+              <div className="chart-body chart-body--tall">
+                <Pie data={chartData.pieData} options={chartOptions} />
               </div>
             </div>
 
@@ -340,8 +369,8 @@ function Dashboard({ dataset }) {
                   <p className="chart-description">Statistical distribution</p>
                 </div>
               </div>
-              <div className="chart-body">
-                <Radar data={chartData.radarData} options={chartOptions} />
+              <div className="chart-body chart-body--tall">
+                <Radar data={chartData.radarData} options={radarOptions} />
               </div>
             </div>
           </div>

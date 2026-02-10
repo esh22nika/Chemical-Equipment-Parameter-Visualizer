@@ -6,11 +6,12 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QFrame, QGridLayout, QScrollArea, QSizePolicy
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, CHART_COLORS, SPACING
-from ui.widgets.stat_card import StatCard
 from ui.widgets.chart_widget import ChartWidget
+from ui.icons import get_icon
+from services.api_service import api_service
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -32,17 +33,20 @@ class DashboardView(QWidget):
         main_layout.setSpacing(0)
         
         # Scroll area
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("QScrollArea { background-color: transparent; }")
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.NoFrame)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll.setStyleSheet("QScrollArea { background-color: transparent; }")
         
         # Content widget
-        content_widget = QWidget()
-        content_layout = QVBoxLayout()
-        content_layout.setContentsMargins(40, 40, 40, 40)
-        content_layout.setSpacing(SPACING['xl'])
+        self.content_widget = QWidget()
+        self.content_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.content_layout = QVBoxLayout()
+        self.content_layout.setContentsMargins(16, 16, 16, 16)
+        self.content_layout.setSpacing(SPACING['md'])
+        self.content_layout.setAlignment(Qt.AlignTop)
         
         # Header
         header_layout = QVBoxLayout()
@@ -57,26 +61,51 @@ class DashboardView(QWidget):
         self.subtitle_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 14px;")
         header_layout.addWidget(self.subtitle_label)
         
-        content_layout.addLayout(header_layout)
+        self.content_layout.addLayout(header_layout)
         
-        # Summary cards
+        # Summary text (no cards)
+        stats_container = QWidget()
+        stats_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.cards_layout = QGridLayout()
-        self.cards_layout.setSpacing(SPACING['md'])
-        
-        self.total_card = StatCard('Total Equipment', '--', '📊')
-        self.flowrate_card = StatCard('Avg Flowrate', '--', '💧')
-        self.pressure_card = StatCard('Avg Pressure', '--', '⚡')
-        self.temp_card = StatCard('Avg Temperature', '--', '🌡️')
-        
-        self.cards_layout.addWidget(self.total_card, 0, 0)
-        self.cards_layout.addWidget(self.flowrate_card, 0, 1)
-        self.cards_layout.addWidget(self.pressure_card, 1, 0)
-        self.cards_layout.addWidget(self.temp_card, 1, 1)
-        
-        content_layout.addLayout(self.cards_layout)
+        self.cards_layout.setContentsMargins(0, 0, 0, 0)
+        self.cards_layout.setHorizontalSpacing(SPACING['xl'])
+        self.cards_layout.setVerticalSpacing(SPACING['md'])
+        self.cards_layout.setColumnStretch(0, 1)
+        self.cards_layout.setColumnStretch(1, 1)
+
+        def make_stat(title):
+            box = QWidget()
+            box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+            box.setMinimumHeight(56)
+            layout = QVBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(6)
+            label = QLabel(title)
+            label.setStyleSheet(f"color: {COLORS['text_tertiary']}; font-size: 12px;")
+            value = QLabel('--')
+            value.setFont(QFont('Arial', 18, QFont.Bold))
+            value.setStyleSheet(f"color: {COLORS['text_primary']};")
+            layout.addWidget(label)
+            layout.addWidget(value)
+            box.setLayout(layout)
+            return box, value
+
+        total_block, self.total_value_label = make_stat('Total Equipment')
+        flow_block, self.flowrate_value_label = make_stat('Avg Flowrate')
+        pressure_block, self.pressure_value_label = make_stat('Avg Pressure')
+        temp_block, self.temp_value_label = make_stat('Avg Temperature')
+
+        self.cards_layout.addWidget(total_block, 0, 0)
+        self.cards_layout.addWidget(flow_block, 0, 1)
+        self.cards_layout.addWidget(pressure_block, 1, 0)
+        self.cards_layout.addWidget(temp_block, 1, 1)
+
+        stats_container.setLayout(self.cards_layout)
+        self.content_layout.addWidget(stats_container)
         
         # Charts container
         self.charts_container = QWidget()
+        self.charts_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.charts_layout = QVBoxLayout()
         self.charts_layout.setSpacing(SPACING['lg'])
         
@@ -85,11 +114,11 @@ class DashboardView(QWidget):
         row1.setSpacing(SPACING['lg'])
         
         self.line_chart = ChartWidget('Parameter Trends', 'Multi-parameter analysis')
-        self.line_chart.setMinimumHeight(350)
+        self.line_chart.setMinimumHeight(200)
         row1.addWidget(self.line_chart, 2)
         
         self.pie_chart = ChartWidget('Equipment Distribution', 'By type')
-        self.pie_chart.setMinimumHeight(350)
+        self.pie_chart.setMinimumHeight(200)
         row1.addWidget(self.pie_chart, 1)
         
         self.charts_layout.addLayout(row1)
@@ -99,7 +128,7 @@ class DashboardView(QWidget):
         row2.setSpacing(SPACING['lg'])
         
         self.bar_chart = ChartWidget('Average Parameters', 'Comparative analysis')
-        self.bar_chart.setMinimumHeight(320)
+        self.bar_chart.setMinimumHeight(190)
         row2.addWidget(self.bar_chart, 1)
         
         self.stats_table = self.create_stats_table()
@@ -110,18 +139,17 @@ class DashboardView(QWidget):
         self.charts_container.setLayout(self.charts_layout)
         self.charts_container.hide()  # Hidden until data loaded
         
-        content_layout.addWidget(self.charts_container)
+        self.content_layout.addWidget(self.charts_container)
         
         # Empty state
         self.empty_state = self.create_empty_state()
-        content_layout.addWidget(self.empty_state)
+        self.content_layout.addWidget(self.empty_state)
         
-        content_layout.addStretch()
         
-        content_widget.setLayout(content_layout)
-        scroll.setWidget(content_widget)
+        self.content_widget.setLayout(self.content_layout)
+        self.scroll.setWidget(self.content_widget)
         
-        main_layout.addWidget(scroll)
+        main_layout.addWidget(self.scroll)
         self.setLayout(main_layout)
     
     def create_empty_state(self):
@@ -132,8 +160,8 @@ class DashboardView(QWidget):
         layout.setSpacing(SPACING['lg'])
         
         # Icon
-        icon_label = QLabel('📊')
-        icon_label.setFont(QFont('Arial', 64))
+        icon_label = QLabel()
+        icon_label.setPixmap(get_icon('chart', 64).pixmap(64, 64))
         icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon_label)
         
@@ -197,15 +225,24 @@ class DashboardView(QWidget):
         if not dataset:
             self.show_empty_state()
             return
+
+        # If only summary data is provided, fetch the full dataset for charts
+        if 'data' not in self.dataset or self.dataset.get('data') is None:
+            try:
+                dataset_id = self.dataset.get('id')
+                if dataset_id:
+                    self.dataset = api_service.get_dataset(dataset_id)
+            except Exception as e:
+                print(f"Dashboard full dataset fetch failed: {e}")
         
         # Update subtitle
-        self.subtitle_label.setText(f"{dataset['filename']} • {dataset['total_count']} items")
+        self.subtitle_label.setText(f"{self.dataset['filename']} - {self.dataset['total_count']} items")
         
         # Update cards
-        self.total_card.set_value(str(dataset['total_count']))
-        self.flowrate_card.set_value(f"{dataset['avg_flowrate']:.1f} L/min")
-        self.pressure_card.set_value(f"{dataset['avg_pressure']:.1f} bar")
-        self.temp_card.set_value(f"{dataset['avg_temperature']:.1f} °C")
+        self.total_value_label.setText(str(self.dataset['total_count']))
+        self.flowrate_value_label.setText(f"{self.dataset['avg_flowrate']:.1f} L/min")
+        self.pressure_value_label.setText(f"{self.dataset['avg_pressure']:.1f} bar")
+        self.temp_value_label.setText(f"{self.dataset['avg_temperature']:.1f} C")
         
         # Show charts, hide empty state
         self.empty_state.hide()
@@ -213,6 +250,7 @@ class DashboardView(QWidget):
         
         # Update charts
         self.update_charts()
+        QTimer.singleShot(0, self._refresh_scroll)
     
     def update_charts(self):
         """Update all charts"""
@@ -255,14 +293,14 @@ class DashboardView(QWidget):
         """Update statistics table"""
         if not self.dataset or 'data' not in self.dataset:
             return
-        
+
         data = self.dataset['data']
-        
+
         # Calculate statistics
         flowrates = [item['Flowrate'] for item in data]
         pressures = [item['Pressure'] for item in data]
         temps = [item['Temperature'] for item in data]
-        
+
         def calc_stats(values):
             import statistics
             return {
@@ -271,11 +309,11 @@ class DashboardView(QWidget):
                 'mean': statistics.mean(values),
                 'stdev': statistics.stdev(values) if len(values) > 1 else 0
             }
-        
+
         flow_stats = calc_stats(flowrates)
         pres_stats = calc_stats(pressures)
         temp_stats = calc_stats(temps)
-        
+
         # Create HTML table
         html = f"""
         <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -309,11 +347,23 @@ class DashboardView(QWidget):
             </tr>
         </table>
         """
-        
+
         self.stats_content.setText(html)
         self.stats_content.setTextFormat(Qt.RichText)
         self.stats_content.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-    
+
+    def _refresh_scroll(self):
+        """Refresh scroll sizing after content changes."""
+        # Let layout compute desired height, then enforce it for scrolling
+        self.content_layout.invalidate()
+        self.content_layout.activate()
+        base_h = self.content_layout.sizeHint().height()
+        min_h = self.scroll.viewport().height() + 200
+        target_h = max(base_h, min_h)
+        self.content_widget.setMinimumHeight(target_h)
+        self.content_widget.adjustSize()
+        self.content_widget.updateGeometry()
+
     def show_empty_state(self):
         """Show empty state"""
         self.charts_container.hide()

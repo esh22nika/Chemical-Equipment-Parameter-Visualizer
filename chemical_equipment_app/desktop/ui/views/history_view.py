@@ -1,5 +1,5 @@
 """
-History View
+History View - Fixed Version
 """
 
 from PyQt5.QtWidgets import (
@@ -10,6 +10,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, SPACING
 from ui.styles import get_button_style
+from ui.icons import get_icon
 from services.api_service import api_service
 from datetime import datetime
 
@@ -49,8 +50,9 @@ class HistoryView(QWidget):
         header_layout.addStretch()
         
         # Refresh button
-        refresh_btn = QPushButton('🔄 Refresh')
+        refresh_btn = QPushButton('Refresh')
         refresh_btn.setStyleSheet(get_button_style('secondary'))
+        refresh_btn.setIcon(get_icon('refresh'))
         refresh_btn.clicked.connect(self.load_history)
         refresh_btn.setCursor(Qt.PointingHandCursor)
         header_layout.addWidget(refresh_btn)
@@ -82,7 +84,7 @@ class HistoryView(QWidget):
     def load_history(self):
         """Load upload history"""
         try:
-            self.status_label.setText('Loading...')
+            self.status_label.setText('Loading history...')
             
             # Clear existing cards
             for i in reversed(range(self.history_layout.count())):
@@ -95,6 +97,7 @@ class HistoryView(QWidget):
             
             if not history:
                 self.status_label.setText('No upload history found')
+                self.show_empty_state()
                 return
             
             self.status_label.setText('')
@@ -108,7 +111,39 @@ class HistoryView(QWidget):
             self.history_layout.addStretch()
             
         except Exception as e:
-            self.status_label.setText(f'Error loading history: {str(e)}')
+            error_msg = str(e)
+            print(f"History load error: {error_msg}")
+            self.status_label.setText(f'Error loading history: {error_msg}')
+            self.show_empty_state()
+    
+    def show_empty_state(self):
+        """Show empty state message"""
+        empty_widget = QWidget()
+        empty_layout = QVBoxLayout()
+        empty_layout.setAlignment(Qt.AlignCenter)
+        empty_layout.setSpacing(SPACING['lg'])
+        
+        # Icon
+        icon = QLabel()
+        icon.setPixmap(get_icon('history', 64).pixmap(64, 64))
+        icon.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(icon)
+        
+        # Title
+        title = QLabel('No Upload History')
+        title.setFont(QFont('Arial', 20, QFont.Bold))
+        title.setStyleSheet(f"color: {COLORS['text_primary']};")
+        title.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(title)
+        
+        # Description
+        desc = QLabel('Your uploaded datasets will appear here')
+        desc.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 14px;")
+        desc.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(desc)
+        
+        empty_widget.setLayout(empty_layout)
+        self.history_layout.addWidget(empty_widget)
     
     def create_history_card(self, dataset):
         """Create history card widget"""
@@ -122,7 +157,6 @@ class HistoryView(QWidget):
             }}
             QFrame:hover {{
                 border-color: {COLORS['border']};
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }}
         """)
         
@@ -136,26 +170,30 @@ class HistoryView(QWidget):
         file_layout = QHBoxLayout()
         file_layout.setSpacing(SPACING['sm'])
         
-        icon = QLabel('📊')
-        icon.setFont(QFont('Arial', 20))
+        icon = QLabel()
+        icon.setPixmap(get_icon('data_table', 20).pixmap(20, 20))
         file_layout.addWidget(icon)
         
         file_info = QVBoxLayout()
         file_info.setSpacing(4)
         
-        filename = QLabel(dataset['filename'])
+        filename = QLabel(dataset.get('filename', 'Unknown'))
         filename.setFont(QFont('Arial', 14, QFont.Bold))
         filename.setStyleSheet(f"color: {COLORS['text_primary']};")
         file_info.addWidget(filename)
         
         # Format date
         try:
-            date_obj = datetime.fromisoformat(dataset['upload_date'].replace('Z', '+00:00'))
-            date_str = date_obj.strftime('%b %d, %Y %I:%M %p')
+            date_str = dataset.get('upload_date', '')
+            if date_str:
+                date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                date_formatted = date_obj.strftime('%b %d, %Y %I:%M %p')
+            else:
+                date_formatted = 'Unknown date'
         except:
-            date_str = dataset['upload_date']
+            date_formatted = date_str
         
-        date_label = QLabel(date_str)
+        date_label = QLabel(date_formatted)
         date_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
         file_info.addWidget(date_label)
         
@@ -165,7 +203,7 @@ class HistoryView(QWidget):
         header_layout.addStretch()
         
         # Dataset ID badge
-        id_badge = QLabel(f"ID: {dataset['id']}")
+        id_badge = QLabel(f"ID: {dataset.get('id', '')}")
         id_badge.setStyleSheet(f"""
             background-color: {COLORS['primary']};
             color: white;
@@ -183,10 +221,10 @@ class HistoryView(QWidget):
         stats_grid.setSpacing(SPACING['lg'])
         
         stats = [
-            ('📦 Count', dataset['total_count']),
-            ('💧 Flowrate', f"{dataset['avg_flowrate']:.1f}"),
-            ('⚡ Pressure', f"{dataset['avg_pressure']:.1f}"),
-            ('🌡️ Temp', f"{dataset['avg_temperature']:.1f}")
+            ('Count', dataset.get('total_count', 0)),
+            ('Flowrate', f"{dataset.get('avg_flowrate', 0):.1f}"),
+            ('Pressure', f"{dataset.get('avg_pressure', 0):.1f}"),
+            ('Temp', f"{dataset.get('avg_temperature', 0):.1f}"),
         ]
         
         for label, value in stats:
@@ -208,7 +246,8 @@ class HistoryView(QWidget):
         layout.addLayout(stats_grid)
         
         # Equipment types
-        if dataset.get('equipment_type_distribution'):
+        type_dist = dataset.get('equipment_type_distribution', {})
+        if type_dist:
             types_layout = QVBoxLayout()
             types_layout.setSpacing(SPACING['sm'])
             
@@ -219,7 +258,7 @@ class HistoryView(QWidget):
             badges_layout = QHBoxLayout()
             badges_layout.setSpacing(SPACING['sm'])
             
-            for eq_type, count in dataset['equipment_type_distribution'].items():
+            for eq_type, count in type_dist.items():
                 badge = QLabel(f"{eq_type}: {count}")
                 badge.setStyleSheet(f"""
                     background-color: {COLORS['primary_light']};
@@ -239,15 +278,17 @@ class HistoryView(QWidget):
         actions_layout = QHBoxLayout()
         actions_layout.setSpacing(SPACING['sm'])
         
-        view_btn = QPushButton('👁️ View Details')
+        view_btn = QPushButton('View Details')
         view_btn.setStyleSheet(get_button_style('primary'))
-        view_btn.clicked.connect(lambda: self.view_dataset(dataset['id']))
+        view_btn.setIcon(get_icon('view'))
+        view_btn.clicked.connect(lambda: self.view_dataset(dataset.get('id')))
         view_btn.setCursor(Qt.PointingHandCursor)
         actions_layout.addWidget(view_btn, 1)
         
-        delete_btn = QPushButton('🗑️ Delete')
+        delete_btn = QPushButton('Delete')
         delete_btn.setStyleSheet(get_button_style('danger'))
-        delete_btn.clicked.connect(lambda: self.delete_dataset(dataset['id']))
+        delete_btn.setIcon(get_icon('delete'))
+        delete_btn.clicked.connect(lambda: self.delete_dataset(dataset.get('id')))
         delete_btn.setCursor(Qt.PointingHandCursor)
         actions_layout.addWidget(delete_btn, 0)
         
@@ -257,20 +298,75 @@ class HistoryView(QWidget):
         return card
     
     def view_dataset(self, dataset_id):
-        """View dataset details"""
+        """View dataset summary details"""
+        if not dataset_id:
+            QMessageBox.warning(self, 'Error', 'Invalid dataset ID')
+            return
+            
         try:
-            dataset = api_service.get_dataset(dataset_id)
-            self.dataset_selected.emit(dataset)
+            print(f"Loading summary for dataset {dataset_id}...")  # Debug
+            
+            # Fetch summary only
+            summary = api_service.get_summary(dataset_id)
+            
+            if not summary:
+                QMessageBox.warning(self, 'Error', 'Dataset not found')
+                return
+            
+            # Build summary message
+            types = summary.get('equipment_type_distribution', {})
+            types_str = ', '.join([f"{k}: {v}" for k, v in types.items()]) or 'None'
+            
+            QMessageBox.information(
+                self,
+                'Dataset Summary',
+                f"Filename: {summary.get('filename', 'Unknown')}\n"
+                f"Upload Date: {summary.get('upload_date', 'Unknown')}\n"
+                f"Total Equipment: {summary.get('total_count', 0)}\n"
+                f"Avg Flowrate: {summary.get('avg_flowrate', 0):.2f} L/min\n"
+                f"Avg Pressure: {summary.get('avg_pressure', 0):.2f} bar\n"
+                f"Avg Temperature: {summary.get('avg_temperature', 0):.2f} C\n"
+                f"Equipment Types: {types_str}"
+            )
+            
         except Exception as e:
-            QMessageBox.warning(self, 'Error', f'Failed to load dataset: {str(e)}')
+            error_msg = str(e)
+            print(f"Error loading dataset: {error_msg}")  # Debug
+            
+            # Show detailed error
+            if '404' in error_msg:
+                QMessageBox.warning(
+                    self,
+                    'Dataset Not Found',
+                    f'Dataset #{dataset_id} was not found on the server.\n'
+                    f'It may have been deleted.'
+                )
+            elif 'Connection' in error_msg:
+                QMessageBox.warning(
+                    self,
+                    'Connection Error',
+                    'Cannot connect to the server.\n'
+                    'Make sure the backend is running.'
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    'Error',
+                    f'Failed to load dataset:\n{error_msg[:200]}'
+                )
     
     def delete_dataset(self, dataset_id):
         """Delete dataset"""
+        if not dataset_id:
+            QMessageBox.warning(self, 'Error', 'Invalid dataset ID')
+            return
+            
         reply = QMessageBox.question(
             self,
             'Confirm Delete',
-            'Are you sure you want to delete this dataset?',
-            QMessageBox.Yes | QMessageBox.No
+            f'Are you sure you want to delete dataset #{dataset_id}',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
@@ -279,4 +375,10 @@ class HistoryView(QWidget):
                 self.load_history()
                 QMessageBox.information(self, 'Success', 'Dataset deleted successfully')
             except Exception as e:
-                QMessageBox.warning(self, 'Error', f'Failed to delete dataset: {str(e)}')
+                error_msg = str(e)
+                print(f"Delete error: {error_msg}")
+                QMessageBox.warning(
+                    self,
+                    'Error',
+                    f'Failed to delete dataset:\n{error_msg[:200]}'
+                )

@@ -6,12 +6,13 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from config.settings import COLORS, SPACING
+from ui.icons import get_icon
 
 
 class StatCard(QFrame):
     """Statistic card widget"""
     
-    def __init__(self, title, value='--', icon='📊'):
+    def __init__(self, title, value='--', icon=''):
         super().__init__()
         self.title = title
         self.icon = icon
@@ -32,18 +33,19 @@ class StatCard(QFrame):
                 background: {COLORS['surface']};
             }}
         """)
-        self.setMinimumHeight(120)
+        self.setMinimumHeight(100)
         
         layout = QVBoxLayout()
-        layout.setSpacing(SPACING['sm'])
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(SPACING['xs'])
+        layout.setContentsMargins(16, 16, 16, 16)
         
         # Header with icon
         header_layout = QHBoxLayout()
         
         # Icon
-        icon_label = QLabel(self.icon)
-        icon_label.setFont(QFont('Arial', 24))
+        icon_label = QLabel()
+        icon_pixmap = get_icon(self.icon, 18).pixmap(18, 18)
+        icon_label.setPixmap(icon_pixmap)
         header_layout.addWidget(icon_label)
         
         header_layout.addStretch()
@@ -54,7 +56,7 @@ class StatCard(QFrame):
         title_label = QLabel(self.title)
         title_label.setStyleSheet(f"""
             color: {COLORS['text_secondary']};
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -63,7 +65,7 @@ class StatCard(QFrame):
         
         # Value
         self.value_label = QLabel(value)
-        self.value_label.setFont(QFont('Arial', 28, QFont.Bold))
+        self.value_label.setFont(QFont('Arial', 20, QFont.Bold))
         self.value_label.setStyleSheet(f"color: {COLORS['text_primary']};")
         layout.addWidget(self.value_label)
         

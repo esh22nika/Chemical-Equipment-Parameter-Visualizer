@@ -59,7 +59,7 @@ class ChartWidget(QFrame):
         layout.addWidget(header)
         
         # Chart canvas
-        self.figure = Figure(figsize=(8, 4), dpi=100)
+        self.figure = Figure(figsize=(6.5, 3.0), dpi=100)
         self.figure.patch.set_facecolor('white')
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setStyleSheet("background-color: white;")

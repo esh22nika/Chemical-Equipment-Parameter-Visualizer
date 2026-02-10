@@ -70,6 +70,47 @@ function LoginScreen({ onLogin }) {
             <p>Equipment Analytics Platform</p>
           </div>
         </div>
+        <div className="login-hero-graphic" aria-hidden="true">
+          <svg width="520" height="300" viewBox="0 0 520 300" fill="none">
+            <g opacity="0.9">
+              <path d="M30 235C95 210 120 250 180 225C245 198 265 245 330 220C395 195 420 235 490 210" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeDasharray="6 8"/>
+              <path d="M24 255C88 230 120 270 176 248C240 224 266 262 328 240C392 218 424 250 488 228" stroke="rgba(0,212,170,0.3)" strokeWidth="2" strokeDasharray="4 10"/>
+            </g>
+            <g opacity="0.95">
+              <circle cx="70" cy="90" r="10" fill="rgba(255,255,255,0.95)"/>
+              <circle cx="120" cy="60" r="8" fill="rgba(0,212,170,0.95)"/>
+              <circle cx="170" cy="105" r="9" fill="rgba(255,255,255,0.95)"/>
+              <circle cx="230" cy="70" r="7" fill="rgba(0,212,170,0.9)"/>
+              <circle cx="285" cy="115" r="10" fill="rgba(255,255,255,0.95)"/>
+              <circle cx="340" cy="80" r="8" fill="rgba(0,212,170,0.9)"/>
+              <circle cx="395" cy="120" r="9" fill="rgba(255,255,255,0.9)"/>
+              <circle cx="455" cy="95" r="7" fill="rgba(0,212,170,0.9)"/>
+              <circle cx="480" cy="150" r="10" fill="rgba(255,255,255,0.9)"/>
+              <circle cx="410" cy="170" r="8" fill="rgba(0,212,170,0.85)"/>
+              <circle cx="350" cy="155" r="7" fill="rgba(255,255,255,0.85)"/>
+              <circle cx="300" cy="185" r="9" fill="rgba(0,212,170,0.85)"/>
+              <circle cx="240" cy="160" r="7" fill="rgba(255,255,255,0.85)"/>
+              <circle cx="190" cy="190" r="10" fill="rgba(0,212,170,0.9)"/>
+              <circle cx="120" cy="170" r="8" fill="rgba(255,255,255,0.85)"/>
+              <circle cx="60" cy="200" r="9" fill="rgba(0,212,170,0.85)"/>
+              <path d="M78 88L112 66" stroke="rgba(255,255,255,0.6)" strokeWidth="2"/>
+              <path d="M130 66L164 100" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+              <path d="M176 102L222 74" stroke="rgba(255,255,255,0.45)" strokeWidth="2"/>
+              <path d="M236 76L276 108" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+              <path d="M292 110L332 84" stroke="rgba(255,255,255,0.45)" strokeWidth="2"/>
+              <path d="M346 86L386 116" stroke="rgba(255,255,255,0.45)" strokeWidth="2"/>
+              <path d="M404 122L448 98" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M458 104L474 140" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M468 154L418 168" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M402 170L360 156" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M348 160L306 182" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M292 186L248 166" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M234 170L196 188" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+              <path d="M182 190L128 172" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+              <path d="M114 174L70 198" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+            </g>
+          </svg>
+        </div>
 
         <div className="login-features">
           <div className="feature-item">

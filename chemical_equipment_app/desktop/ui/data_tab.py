@@ -18,7 +18,7 @@ class DataTab(QScrollArea):
 
         layout.addWidget(self.table)
 
-        pdf_btn = ModernButton("📄 Download PDF Report", "primary")
+        pdf_btn = ModernButton(" Download PDF Report", "primary")
         pdf_btn.clicked.connect(generate_pdf)
 
         layout.addWidget(pdf_btn)
