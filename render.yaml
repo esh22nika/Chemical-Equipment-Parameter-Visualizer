@@ -3,7 +3,7 @@ services:
     name: chemflow-backend
     env: python
     rootDir: chemical_equipment_app/backend
-    buildCommand: pip install -r ../backend_requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: python manage.py migrate && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DJANGO_DEBUG
