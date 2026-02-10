@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: chemflow-backend
+    env: python
+    rootDir: chemical_equipment_app/backend
+    buildCommand: pip install -r ../backend_requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://chemflow-frontend.onrender.com"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chemflow-db
+          property: connectionString
+
+  - type: web
+    name: chemflow-frontend
+    env: static
+    rootDir: chemical_equipment_app/frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_BASE_URL
+        value: "https://chemflow-backend.onrender.com/api"
+
+databases:
+  - name: chemflow-db
+    plan: free
